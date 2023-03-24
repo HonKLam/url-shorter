@@ -12,4 +12,17 @@ Deployed on [Netlify](https://cool-url-shorter.netlify.app/)
 4. List of Link Bars - Show Link, Short Link, Button
 5. Footer
 
-##
+## What learned
+
+- Basically practiced some aspects from React, CSS + first time using TypeScript, API fetching
+
+## Where struggled
+
+- Minor Bugs I can't fix
+- CSS is painful as always
+
+## Questions
+
+- Debugging, how to fix the minor issues (see Shorter.tsx)
+- TypeScript? (see App.tsx, Shorter.tsx, Links.tsx)
+- CSS Animations? (interested)
