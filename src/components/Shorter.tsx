@@ -1,87 +1,73 @@
-import React from "react";
+import {useState} from "react";
 import boost from "../images/bg-shorten-desktop.svg";
-import { useState } from "react";
-import { ChangeEvent } from "react";
 
-// Typescript -> Correct thing to do ? At least it fixed the error messages...
-type AppProps = {
-  value: string;
-  error: boolean;
-  setValue: React.Dispatch<React.SetStateAction<string>>;
-  setLinks: React.Dispatch<React.SetStateAction<string[]>>;
-  setOriginalLinks: React.Dispatch<React.SetStateAction<string[]>>;
-  setError: React.Dispatch<React.SetStateAction<boolean>>;
+type Props = {
+  onLinkChange: ({originalLink, shortenedLink}: {originalLink: string; shortenedLink: string}) => void;
 };
 
-export default function Shorter({
-  value,
-  setValue,
-  setLinks,
-  setOriginalLinks,
-  error,
-  setError,
-}: AppProps) {
-  function handleClick() {
+/*
+ * I found this example here: https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
+ * I hate writing regular expressions myself :(
+ */
+export const isValidUrl = (urlString: string) => {
+  const urlPattern = new RegExp(
+    /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi
+  );
+  return !!urlPattern.test(urlString);
+};
+
+export const createShortenedLink = (url: string) => `https://api.shrtco.de/v2/shorten?${new URLSearchParams({url})}`;
+
+const Shorter = (props: Props) => {
+  const {onLinkChange} = props;
+  const [value, setValue] = useState("");
+  const [error, setError] = useState(false);
+
+  const handleClick = (rawUrl: string) => {
     // Check if valid URL
     try {
-      const newValue: URL = new URL(value);
-      console.log(newValue);
+      if (!isValidUrl(rawUrl)) {
+        throw new Error("url does not appear pass validation");
+      }
 
-      // Save the original Link for later
-      setOriginalLinks((prevState) => {
-        return [...prevState, newValue.toString()];
-      });
+      const originalLink = new URL(rawUrl).toString();
 
       // Create Link with Query Params
-      const link = `https://api.shrtco.de/v2/shorten?${new URLSearchParams({
-        url: newValue.toString(),
-      })}`;
+      const link = createShortenedLink(originalLink);
 
       // Do Api Call
       fetch(link)
         .then((response) => response.json())
         .then((response) => {
+          const shortenedLink = response.result.short_link;
           // set Links in State
-          setLinks((prevLinks) => {
-            return [...prevLinks, response.result.short_link];
-          });
+          onLinkChange({originalLink, shortenedLink});
           // reset value
           setValue("");
-          // in case there was an error, reset that as well
-          if (error == true) {
-            setError(false);
-          }
+          setError(false);
         });
     } catch {
       setError(true);
-      // Doesnt catch all invalid links though, having https://something without tld is still valid but will crash the site? Why's that?
     }
-  }
-
-  function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    setValue(event.target.value);
-  }
+  };
 
   const style = {
     border: error ? "2px solid #d46e6f" : "none", // On Error -> button and input slightly shifts -> fixable?
+    // boxSizing: "border-box" <-- this isn't working correctly, I'm probably messing up the syntax :(
   };
 
   return (
     <section className="url-shorter">
       <img src={boost} alt="background-img" />
       <div className="shorter-items">
-        <input
-          className="input-field"
-          value={value}
-          onChange={(event) => handleChange(event)}
-          style={style}
-          placeholder="Shorten a link here..."
-        ></input>
-        <button className="short-button" onClick={handleClick}>
+        <input className="input-field" value={value} onChange={(event) => setValue(event.target.value)} style={style} placeholder="Shorten a link here..." />
+        <button className="short-button" onClick={() => handleClick(value)}>
           Shorten It!
         </button>
         {error && <p className="p-error">Please add a valid link</p>}
       </div>
     </section>
   );
-}
+};
+
+export default Shorter;
