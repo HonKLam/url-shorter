@@ -26,3 +26,15 @@ Deployed on [Netlify](https://cool-url-shorter.netlify.app/)
 - Debugging, how to fix the minor issues (see Shorter.tsx)
 - TypeScript? (see App.tsx, Shorter.tsx, Links.tsx)
 - CSS Animations? (interested)
+
+## Testing Related Questions
+
+- What should I test? Where do I start?
+  - Component?, Functions?, User Interactions?
+- How do I test it?
+  - some components depending on others -> how to include them? Should everything be tested in App.test.tsx then?
+- What is mocking?
+- What is the Ideal way to get/find elements?
+  - byId, byLabel, byText, byRole, ...
+- Commented Issues
+  - Shorter.test.tsx

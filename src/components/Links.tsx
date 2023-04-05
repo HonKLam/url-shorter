@@ -1,20 +1,18 @@
-import React from "react";
-import ShortLink from "./ShortLink";
+import ShortLink from './ShortLink'
 
-type AppProps = {
-  links: string[];
-  originalLinks: string[];
-};
+type Props = {
+  links: string[]
+  originalLinks: string[]
+}
 
-export default function Links({ links, originalLinks }: AppProps) {
+export default function Links(props: Props) {
+  const {links, originalLinks} = props
   return (
     <section className="links-items">
       {links.length ? (
         <div className="links-boxes">
           {links.map((url, index) => {
-            return (
-              <ShortLink shortURL={url} originalLink={originalLinks[index]} />
-            );
+            return <ShortLink shortURL={url} originalLink={originalLinks[index]} />
           })}
         </div>
       ) : (
@@ -24,5 +22,5 @@ export default function Links({ links, originalLinks }: AppProps) {
         </div>
       )}
     </section>
-  );
+  )
 }

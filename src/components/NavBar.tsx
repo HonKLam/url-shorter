@@ -1,5 +1,4 @@
-import React from "react";
-import logo from "../images/logo.svg";
+import logo from '../images/logo.svg'
 
 export default function NavBar() {
   return (
@@ -16,5 +15,5 @@ export default function NavBar() {
         <button className="color-button">Sign Up</button>
       </div>
     </nav>
-  );
+  )
 }
