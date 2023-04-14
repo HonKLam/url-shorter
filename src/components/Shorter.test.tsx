@@ -1,50 +1,65 @@
-import {describe, it, vi, expect} from 'vitest'
-import userEvent from '@testing-library/user-event'
-import {screen, render, waitFor} from '@testing-library/react'
-import Shorter from './Shorter'
+import {describe, it, vi, expect} from "vitest";
+import userEvent from "@testing-library/user-event";
+import {screen, render, waitFor, fireEvent} from "@testing-library/react";
+import Shorter from "./Shorter";
 
-const user = userEvent.setup()
+const mockGenerateShortenedLink = vi.fn();
 
-describe('Shorter', () => {
-  it('renders without error', () => {
-    render(<Shorter onLinkChange={vi.fn()} />)
-  })
+vi.mock("../utils", () => ({
+  createShortLinkURL: () => "shortened-link",
+  generateShortenedLink: () => mockGenerateShortenedLink(),
+}));
 
-  it('throws an error if Shorten-Button is clicked without link', async () => {
+describe("Shorter", () => {
+  it("renders without error", () => {
+    render(<Shorter onLinkChange={vi.fn()} />);
+  });
+
+  it("rendering an error if Shorten-Button is clicked without link", async () => {
     // ARRANGE
-    render(<Shorter onLinkChange={vi.fn()} />)
+    const mockOnLinkChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Shorter onLinkChange={mockOnLinkChange} />);
 
     // ACT
-    await user.click(screen.getByText('Shorten It!'))
+    await user.click(screen.getByText("Shorten It!"));
 
     // ASSERT
     await waitFor(() => {
-      expect(screen.getByText('Please add a valid link')).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText("Please add a valid link")).toBeInTheDocument();
+    });
+  });
 
-  it('should show input from keyboard in input-field/value', async () => {
-    render(<Shorter onLinkChange={vi.fn()} />)
+  it("calls onLinkChange with original and shortened link values", async () => {
+    const mockOnLinkChange = vi.fn();
+    const user = userEvent.setup();
+    const wantedShortenedLink = "https://meet.google.com/blah-dmnd-pek&shortened";
+    mockGenerateShortenedLink.mockResolvedValue(wantedShortenedLink);
+    render(<Shorter onLinkChange={mockOnLinkChange} />);
 
-    await user.type(screen.getByRole('textbox'), 'Hello, World!')
+    fireEvent.change(screen.getByRole("textbox"), {target: {value: "https://meet.google.com/blah-dmnd-pek"}});
+    await user.click(screen.getByText("Shorten It!"));
 
-    await waitFor(() => {
-      expect(screen.getByRole('textbox')).toHaveValue('Hello, World!')
-    })
-    // Value of input has not changed, where is it comparing?
-    // screen.debug()
-  })
+    expect(mockOnLinkChange).toHaveBeenCalledTimes(1);
+    expect(mockOnLinkChange).toHaveBeenCalledWith({
+      originalLink: "https://meet.google.com/blah-dmnd-pek",
+      shortenedLink: wantedShortenedLink,
+    });
+  });
 
   // This does NOT work for some reason... (Expedted vs Received value not aligning, although previous test works...)
-  // it('should show error with invalid link + clicking on button', async () => {
-  //   render(<Shorter onLinkChange={vi.fn()} />)
+  it("should show errorc with invalid link + clicking on button", async () => {
+    const mockOnLinkChange = vi.fn();
+    const user = userEvent.setup();
 
-  //   await user.type(screen.getByRole('textbox'), 'Hello, World!')
-  //   await user.click(screen.getByText('Shorten It!'))
+    render(<Shorter onLinkChange={mockOnLinkChange} />);
 
-  //   await waitFor(() => {
-  //     expect(screen.getByRole('textbox')).toHaveValue('Hello, World!')
-  //     expect(screen.getByText('Please add a valid link')).toBeInTheDocument()
-  //   })
-  // })
-})
+    fireEvent.change(screen.getByRole("textbox"), {target: {value: "invalid-link"}});
+    await user.click(screen.getByText("Shorten It!"));
+
+    waitFor(() => {
+      expect(screen.getByText("Please add a valid link")).toBeInTheDocument();
+    });
+    expect(mockOnLinkChange).not.toHaveBeenCalled();
+  });
+});
